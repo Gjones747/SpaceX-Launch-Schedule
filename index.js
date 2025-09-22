@@ -23,6 +23,8 @@ async function getResponse() {
 
     if (response.status == 429) {
         console.log("yeah ur cooked")
+        console.log(data.detail)
+        parsedError = data.detail.split(" ")
 
         $(".collapse").remove();
 
@@ -37,7 +39,7 @@ async function getResponse() {
         $("#fourthLaunch").remove()
         $("#fifthLaunch").remove()
         
-        $("body").append("<h1 id='firstLaunchInfo'>API ran out of tokens. Sorry :( </h1>")
+        $("body").append(`<h1 id='firstLaunchInfo'>API ran out of tokens. Try again in ${parsedError[6]} seconds. Sorry :( </h1>`)
 
 
 
