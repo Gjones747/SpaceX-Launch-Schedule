@@ -14,17 +14,58 @@ let thirdLaunchDetails = document.getElementById('thirdLaunchDetails')
 let fourthLaunchDetails = document.getElementById('fourthLaunchDetails')
 let fifthLaunchDetails = document.getElementById('fifthLaunchDetails')
 
-const getApiData = async (launchNumber, element, type) => {
-    api_url = 'https://api.spacexdata.com/v3/launches/upcoming'
+
+async function getResponse() {
+    api_url = 'https://ll.thespacedevs.com/2.3.0/events/upcoming/?format=json'
+
     const response = await fetch(api_url);
     const data = await response.json();
+
+    if (response.status == 429) {
+        console.log("yeah ur cooked")
+
+        $(".collapse").remove();
+
+        $("#first-launch").remove();
+        $("#secondLaunchInfo").remove();
+        $("#thirdLaunchInfo").remove();
+        $("#fourthLaunchInfo").remove();
+        $("#fifthLaunchInfo").remove();
+        $("#firstLaunch").remove()
+        $("#secondLaunch").remove()
+        $("#thirdLaunch").remove()
+        $("#fourthLaunch").remove()
+        $("#fifthLaunch").remove()
+        
+        $("body").append("<h1 id='firstLaunchInfo'>API ran out of tokens. Sorry :( </h1>")
+
+
+
+
+
+        return 
+    }
+
+
+
+
+
+    return data
+
+    
+
+}
+
+
+const getApiData = (launchNumber, element, type, data) => {
+
     if (type === 'name') {
-        missionName = data[launchNumber-1].mission_name
+        missionName = data.results[launchNumber-1].name
         element.innerHTML = missionName
     }
     
     if (type === 'time') {
-        missionTime = data[launchNumber-1].launch_date_local
+        missionTime = data.results[launchNumber-1].date
         date = missionTime.slice(0, 10)
         time = missionTime.slice(11, 16)
         element.innerHTML = `${date}, ${time}` 
@@ -32,23 +73,36 @@ const getApiData = async (launchNumber, element, type) => {
     }
 
     if (type === 'data') {
-        details = data[launchNumber-1].details
+        details = data.results[launchNumber-1].description
+        console.log(details)
         if (details === null) {
             
-            launchSite = data[launchNumber-1].launch_site.site_name_long
+            launchSite = data.results[launchNumber-1].location
             element.innerHTML = launchSite
-            link = data[launchNumber-1].links.reddit_campaign
-            link = data[launchNumber-1].links.reddit_campaign
+            var link 
+            try {
+                link = data.results[launchNumber-1].url
+            } catch {
+                link = data.results[launchNumber-1].info_urls[0].url
+            }  
 
             if (link != null) {
-
                 element.href = link
-
             }
 
         
         } else {
-            link = data[launchNumber-1].links.reddit_campaign
+            var link 
+            try {
+                if (data.results[launchNumber-1].info_urls.length != 0) {
+                    link = data.results[launchNumber-1].info_urls[0].url
+                } else if (data.results[launchNumber-1].vid_urls.length != 0) {
+                    link = data.results[launchNumber-1].vid_urls[0].url
+                }
+                
+            } catch {
+                link = null
+            }
 
             if (link != null) {
 
@@ -60,18 +114,29 @@ const getApiData = async (launchNumber, element, type) => {
         }
     }
 }
-getApiData(1, firstLaunchName, 'name')
-getApiData(2, secondLaunchName, 'name')
-getApiData(3, thirdLaunchName, 'name')
-getApiData(4, fourthLaunchName, 'name')
-getApiData(5, fifthLaunchName, 'name')
-getApiData(1, firstLaunchTime, 'time')
-getApiData(2, secondLaunchTime, 'time')
-getApiData(3, thirdLaunchTime, 'time')
-getApiData(4, fourthLaunchTime, 'time')
-getApiData(5, fifthLaunchTime, 'time')
-getApiData(1, firstLaunchDetails, 'data')
-getApiData(2, secondLaunchDetails, 'data')
-getApiData(3, thirdLaunchDetails, 'data')
-getApiData(4, fourthLaunchDetails, 'data')
-getApiData(5, fifthLaunchDetails, 'data')
+
+function formatData(data) {
+    console.log(data)
+    if (data != null) {
+        getApiData(1, firstLaunchName, 'name', data)
+        getApiData(2, secondLaunchName, 'name', data)
+        getApiData(3, thirdLaunchName, 'name', data)
+        getApiData(4, fourthLaunchName, 'name', data)
+        getApiData(5, fifthLaunchName, 'name', data)
+        getApiData(1, firstLaunchTime, 'time', data)
+        getApiData(2, secondLaunchTime, 'time', data)
+        getApiData(3, thirdLaunchTime, 'time', data)
+        getApiData(4, fourthLaunchTime, 'time', data)
+        getApiData(5, fifthLaunchTime, 'time', data)
+        getApiData(1, firstLaunchDetails, 'data', data)
+        getApiData(2, secondLaunchDetails, 'data', data)
+        getApiData(3, thirdLaunchDetails, 'data',data)
+        getApiData(4, fourthLaunchDetails, 'data', data)
+        getApiData(5, fifthLaunchDetails, 'data', data)
+
+    }
+}
+
+
+
+getResponse().then(resultingData => formatData(resultingData))
